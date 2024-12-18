@@ -164,13 +164,15 @@ pub trait HyperlaneRouterDispatch: HyperlaneRouter + HyperlaneConnectionClient {
             .interchain_gas_paymaster()
             .ok_or(ProgramError::InvalidArgument)?;
 
-        let igp_ixn = Instruction::new_with_borsh(
+        let igp_data = borsh::to_vec(&IgpInstruction::PayForGas(IgpPayForGas {
+            message_id,
+            destination_domain,
+            gas_amount,
+        }))
+        .unwrap();
+        let igp_ixn = Instruction::new_with_bytes(
             *igp_program_id,
-            &IgpInstruction::PayForGas(IgpPayForGas {
-                message_id,
-                destination_domain,
-                gas_amount,
-            }),
+            &igp_data,
             payment_account_metas,
         );
 

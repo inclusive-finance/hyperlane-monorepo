@@ -1,7 +1,7 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use hyperlane_core::H256;
 use solana_program::program_error::ProgramError;
-use spl_type_length_value::discriminator::Discriminator;
+use spl_discriminator::ArrayDiscriminator;
 
 /// Instructions that a Hyperlane message recipient is expected to process.
 /// The first 8 bytes of the encoded instruction is a discriminator that
@@ -27,13 +27,13 @@ pub enum MessageRecipientInstruction {
 }
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-message-recipient:interchain-security-module"])`
-const INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [45, 18, 245, 87, 234, 46, 246, 15];
 const INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR_SLICE: &[u8] =
     &INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR;
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-message-recipient:interchain-security-module-account-metas"])`
-const INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [190, 214, 218, 129, 67, 97, 4, 76];
 const INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR_SLICE: &[u8] =
     &INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR;
@@ -66,11 +66,11 @@ impl HandleInstruction {
 }
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-message-recipient:handle"])`
-const HANDLE_DISCRIMINATOR: [u8; Discriminator::LENGTH] = [33, 210, 5, 66, 196, 212, 239, 142];
+const HANDLE_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] = [33, 210, 5, 66, 196, 212, 239, 142];
 const HANDLE_DISCRIMINATOR_SLICE: &[u8] = &HANDLE_DISCRIMINATOR;
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-message-recipient:handle-account-metas"])`
-const HANDLE_ACCOUNT_METAS_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const HANDLE_ACCOUNT_METAS_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [194, 141, 30, 82, 241, 41, 169, 52];
 const HANDLE_ACCOUNT_METAS_DISCRIMINATOR_SLICE: &[u8] = &HANDLE_ACCOUNT_METAS_DISCRIMINATOR;
 
@@ -116,10 +116,10 @@ impl MessageRecipientInstruction {
     }
 
     pub fn decode(buf: &[u8]) -> Result<Self, ProgramError> {
-        if buf.len() < Discriminator::LENGTH {
+        if buf.len() < ArrayDiscriminator::LENGTH {
             return Err(ProgramError::InvalidInstructionData);
         }
-        let (discriminator, rest) = buf.split_at(Discriminator::LENGTH);
+        let (discriminator, rest) = buf.split_at(ArrayDiscriminator::LENGTH);
         match discriminator {
             INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR_SLICE => Ok(Self::InterchainSecurityModule),
             INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR_SLICE => {
@@ -149,24 +149,24 @@ mod test {
     fn test_discriminator_slices() {
         assert_eq!(
             &hashv(&[b"hyperlane-message-recipient:interchain-security-module"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
             &hashv(&[b"hyperlane-message-recipient:interchain-security-module-account-metas"])
-                .to_bytes()[..Discriminator::LENGTH],
+                .to_bytes()[..ArrayDiscriminator::LENGTH],
             INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
-            &hashv(&[b"hyperlane-message-recipient:handle"]).to_bytes()[..Discriminator::LENGTH],
+            &hashv(&[b"hyperlane-message-recipient:handle"]).to_bytes()[..ArrayDiscriminator::LENGTH],
             HANDLE_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
             &hashv(&[b"hyperlane-message-recipient:handle-account-metas"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             HANDLE_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
     }
@@ -177,7 +177,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             INTERCHAIN_SECURITY_MODULE_DISCRIMINATOR_SLICE,
         );
 
@@ -191,7 +191,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             INTERCHAIN_SECURITY_MODULE_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
 
@@ -209,7 +209,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             HANDLE_DISCRIMINATOR_SLICE,
         );
 
@@ -227,7 +227,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             HANDLE_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
 

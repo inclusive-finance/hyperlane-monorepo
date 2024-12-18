@@ -1,5 +1,5 @@
 use solana_program::program_error::ProgramError;
-use spl_type_length_value::discriminator::Discriminator;
+use spl_discriminator::ArrayDiscriminator;
 
 /// Instructions that a Hyperlane Multisig ISM is expected to process.
 /// The first 8 bytes of the encoded instruction is a discriminator that
@@ -18,11 +18,11 @@ pub enum MultisigIsmInstruction {
 }
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-multisig-ism:validators-and-threshold"])`
-const VALIDATORS_AND_THRESHOLD_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const VALIDATORS_AND_THRESHOLD_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [82, 96, 5, 220, 241, 173, 13, 50];
 const VALIDATORS_AND_THRESHOLD_DISCRIMINATOR_SLICE: &[u8] = &VALIDATORS_AND_THRESHOLD_DISCRIMINATOR;
 
-const VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [113, 7, 132, 85, 239, 247, 157, 204];
 const VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR_SLICE: &[u8] =
     &VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR;
@@ -55,10 +55,10 @@ impl MultisigIsmInstruction {
     }
 
     pub fn decode(buf: &[u8]) -> Result<Self, ProgramError> {
-        if buf.len() < Discriminator::LENGTH {
+        if buf.len() < ArrayDiscriminator::LENGTH {
             return Err(ProgramError::InvalidInstructionData);
         }
-        let (discriminator, rest) = buf.split_at(Discriminator::LENGTH);
+        let (discriminator, rest) = buf.split_at(ArrayDiscriminator::LENGTH);
         match discriminator {
             VALIDATORS_AND_THRESHOLD_DISCRIMINATOR_SLICE => {
                 let message = rest.to_vec();
@@ -82,13 +82,13 @@ mod test {
     fn test_discriminator_slices() {
         assert_eq!(
             &hashv(&[b"hyperlane-multisig-ism:validators-and-threshold"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             VALIDATORS_AND_THRESHOLD_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
             &hashv(&[b"hyperlane-multisig-ism:validators-and-threshold-account-metas"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
     }
@@ -99,7 +99,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             VALIDATORS_AND_THRESHOLD_DISCRIMINATOR_SLICE,
         );
 
@@ -114,7 +114,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             VALIDATORS_AND_THRESHOLD_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
 

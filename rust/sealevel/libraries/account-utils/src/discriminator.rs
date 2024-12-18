@@ -1,11 +1,11 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
-use spl_type_length_value::discriminator::Discriminator;
+use spl_discriminator::ArrayDiscriminator;
 use std::ops::{Deref, DerefMut};
 
 use crate::{Data, SizedData};
 
-pub const PROGRAM_INSTRUCTION_DISCRIMINATOR: [u8; Discriminator::LENGTH] = [1, 1, 1, 1, 1, 1, 1, 1];
+pub const PROGRAM_INSTRUCTION_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] = [1, 1, 1, 1, 1, 1, 1, 1];
 
 pub trait DiscriminatorPrefixedData: Data + DiscriminatorData {}
 
@@ -44,7 +44,7 @@ where
     T: DiscriminatorPrefixedData,
 {
     fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
-        let (discriminator, rest) = buf.split_at(Discriminator::LENGTH);
+        let (discriminator, rest) = buf.split_at(ArrayDiscriminator::LENGTH);
         if discriminator != T::DISCRIMINATOR {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -55,6 +55,12 @@ where
             data: T::deserialize(&mut rest.to_vec().as_slice())?,
         })
     }
+    
+    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+        let mut buf = vec![];
+        reader.read_to_end(&mut buf)?;
+        Self::deserialize(&mut buf.as_slice())
+    }
 }
 
 impl<T> SizedData for DiscriminatorPrefixed<T>
@@ -63,7 +69,7 @@ where
 {
     fn size(&self) -> usize {
         // Discriminator prefix + data
-        Discriminator::LENGTH + self.data.size()
+        ArrayDiscriminator::LENGTH + self.data.size()
     }
 }
 
@@ -97,9 +103,9 @@ where
 }
 
 pub trait DiscriminatorData: Sized {
-    const DISCRIMINATOR_LENGTH: usize = Discriminator::LENGTH;
+    const DISCRIMINATOR_LENGTH: usize = ArrayDiscriminator::LENGTH;
 
-    const DISCRIMINATOR: [u8; Discriminator::LENGTH];
+    const DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH];
     const DISCRIMINATOR_SLICE: &'static [u8] = &Self::DISCRIMINATOR;
 }
 
@@ -123,7 +129,7 @@ impl<T> DiscriminatorEncode for T where T: DiscriminatorData + borsh::BorshSeria
 /// Decodes the given data with a discriminator prefix.
 pub trait DiscriminatorDecode: DiscriminatorData + borsh::BorshDeserialize {
     fn decode(data: &[u8]) -> Result<Self, ProgramError> {
-        let (discriminator, rest) = data.split_at(Discriminator::LENGTH);
+        let (discriminator, rest) = data.split_at(ArrayDiscriminator::LENGTH);
         if discriminator != Self::DISCRIMINATOR_SLICE {
             return Err(ProgramError::InvalidInstructionData);
         }
@@ -160,7 +166,7 @@ mod test {
 
         assert_eq!(serialized_prefixed_foo.len(), prefixed_foo.size());
         assert_eq!(
-            serialized_prefixed_foo[0..Discriminator::LENGTH],
+            serialized_prefixed_foo[0..ArrayDiscriminator::LENGTH],
             Foo::DISCRIMINATOR
         );
     }

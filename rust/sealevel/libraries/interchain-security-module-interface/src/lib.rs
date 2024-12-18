@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
-use spl_type_length_value::discriminator::Discriminator;
+use spl_discriminator::ArrayDiscriminator;
 
 /// Instructions that a Hyperlane interchain security module is expected to process.
 /// The first 8 bytes of the encoded instruction is a discriminator that
@@ -18,7 +18,7 @@ pub enum InterchainSecurityModuleInstruction {
 }
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-interchain-security-module:type"])`
-const TYPE_DISCRIMINATOR: [u8; Discriminator::LENGTH] = [105, 97, 97, 88, 63, 124, 106, 18];
+const TYPE_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] = [105, 97, 97, 88, 63, 124, 106, 18];
 const TYPE_DISCRIMINATOR_SLICE: &[u8] = &TYPE_DISCRIMINATOR;
 
 #[derive(Eq, PartialEq, BorshSerialize, BorshDeserialize, Debug, Clone)]
@@ -34,11 +34,11 @@ impl VerifyInstruction {
 }
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-interchain-security-module:verify"])`
-const VERIFY_DISCRIMINATOR: [u8; Discriminator::LENGTH] = [243, 53, 214, 0, 208, 18, 231, 67];
+const VERIFY_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] = [243, 53, 214, 0, 208, 18, 231, 67];
 const VERIFY_DISCRIMINATOR_SLICE: &[u8] = &VERIFY_DISCRIMINATOR;
 
 /// First 8 bytes of `hash::hashv(&[b"hyperlane-interchain-security-module:verify-account-metas"])`
-const VERIFY_ACCOUNT_METAS_DISCRIMINATOR: [u8; Discriminator::LENGTH] =
+const VERIFY_ACCOUNT_METAS_DISCRIMINATOR: [u8; ArrayDiscriminator::LENGTH] =
     [200, 65, 157, 12, 89, 255, 131, 216];
 const VERIFY_ACCOUNT_METAS_DISCRIMINATOR_SLICE: &[u8] = &VERIFY_ACCOUNT_METAS_DISCRIMINATOR;
 
@@ -76,10 +76,10 @@ impl InterchainSecurityModuleInstruction {
     }
 
     pub fn decode(buf: &[u8]) -> Result<Self, ProgramError> {
-        if buf.len() < Discriminator::LENGTH {
+        if buf.len() < ArrayDiscriminator::LENGTH {
             return Err(ProgramError::InvalidInstructionData);
         }
-        let (discriminator, rest) = buf.split_at(Discriminator::LENGTH);
+        let (discriminator, rest) = buf.split_at(ArrayDiscriminator::LENGTH);
         match discriminator {
             TYPE_DISCRIMINATOR_SLICE => Ok(Self::Type),
             VERIFY_DISCRIMINATOR_SLICE => {
@@ -106,19 +106,19 @@ mod test {
     fn test_discriminator_slices() {
         assert_eq!(
             &hashv(&[b"hyperlane-interchain-security-module:type"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             TYPE_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
             &hashv(&[b"hyperlane-interchain-security-module:verify"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             VERIFY_DISCRIMINATOR_SLICE,
         );
 
         assert_eq!(
             &hashv(&[b"hyperlane-interchain-security-module:verify-account-metas"]).to_bytes()
-                [..Discriminator::LENGTH],
+                [..ArrayDiscriminator::LENGTH],
             VERIFY_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
     }
@@ -128,7 +128,7 @@ mod test {
         let instruction = InterchainSecurityModuleInstruction::Type;
 
         let encoded = instruction.encode().unwrap();
-        assert_eq!(&encoded[..Discriminator::LENGTH], TYPE_DISCRIMINATOR_SLICE,);
+        assert_eq!(&encoded[..ArrayDiscriminator::LENGTH], TYPE_DISCRIMINATOR_SLICE,);
 
         let decoded = InterchainSecurityModuleInstruction::decode(&encoded).unwrap();
         assert_eq!(instruction, decoded);
@@ -143,7 +143,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             VERIFY_DISCRIMINATOR_SLICE,
         );
 
@@ -159,7 +159,7 @@ mod test {
 
         let encoded = instruction.encode().unwrap();
         assert_eq!(
-            &encoded[..Discriminator::LENGTH],
+            &encoded[..ArrayDiscriminator::LENGTH],
             VERIFY_ACCOUNT_METAS_DISCRIMINATOR_SLICE,
         );
 

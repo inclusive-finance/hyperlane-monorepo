@@ -247,6 +247,12 @@ impl BorshDeserialize for DispatchedMessage {
             encoded_message,
         })
     }
+    
+    fn deserialize_reader<R: Read>(reader: &mut R) -> std::io::Result<Self> {
+        let mut buf = vec![];
+        reader.read_to_end(&mut buf)?;
+        Self::deserialize(&mut buf.as_slice())
+    }
 }
 
 /// An account corresponding to a processed message.
@@ -318,6 +324,12 @@ impl BorshDeserialize for ProcessedMessage {
             message_id: H256::from_slice(&message_id),
             slot: u64::from_le_bytes(slot),
         })
+    }
+    
+    fn deserialize_reader<R: Read>(reader: &mut R) -> std::io::Result<Self> {
+        let mut buf = vec![];
+        reader.read_to_end(&mut buf)?;
+        Self::deserialize(&mut buf.as_slice())
     }
 }
 
