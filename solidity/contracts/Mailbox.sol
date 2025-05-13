@@ -13,8 +13,8 @@ import {IMailbox} from "./interfaces/IMailbox.sol";
 import {PackageVersioned} from "./PackageVersioned.sol";
 
 // ============ External Imports ============
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Address} from "@openzeppelin-contracts-v4/utils/Address.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/OwnableUpgradeable.sol";
 
 contract Mailbox is
     IMailbox,
